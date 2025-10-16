@@ -14,16 +14,254 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bids: {
+        Row: {
+          amount: number
+          created_at: string | null
+          delivery_days: number
+          freelancer_id: string
+          id: string
+          project_id: string
+          proposal: string
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          delivery_days: number
+          freelancer_id: string
+          id?: string
+          project_id: string
+          proposal: string
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          delivery_days?: number
+          freelancer_id?: string
+          id?: string
+          project_id?: string
+          proposal?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          hourly_rate: number | null
+          id: string
+          location: string | null
+          skills: string[] | null
+          updated_at: string | null
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          hourly_rate?: number | null
+          id: string
+          location?: string | null
+          skills?: string[] | null
+          updated_at?: string | null
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          hourly_rate?: number | null
+          id?: string
+          location?: string | null
+          skills?: string[] | null
+          updated_at?: string | null
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          category: Database["public"]["Enums"]["project_category"]
+          client_id: string
+          created_at: string | null
+          deadline: string | null
+          description: string
+          freelancer_id: string | null
+          id: string
+          status: Database["public"]["Enums"]["project_status"] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category: Database["public"]["Enums"]["project_category"]
+          client_id: string
+          created_at?: string | null
+          deadline?: string | null
+          description: string
+          freelancer_id?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["project_status"] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: Database["public"]["Enums"]["project_category"]
+          client_id?: string
+          created_at?: string | null
+          deadline?: string | null
+          description?: string
+          freelancer_id?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["project_status"] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          project_id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          project_id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          project_id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      project_category:
+        | "web_development"
+        | "mobile_development"
+        | "design"
+        | "writing"
+        | "marketing"
+        | "data_science"
+        | "other"
+      project_status: "open" | "in_progress" | "completed" | "cancelled"
+      user_role: "client" | "freelancer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +388,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      project_category: [
+        "web_development",
+        "mobile_development",
+        "design",
+        "writing",
+        "marketing",
+        "data_science",
+        "other",
+      ],
+      project_status: ["open", "in_progress", "completed", "cancelled"],
+      user_role: ["client", "freelancer"],
+    },
   },
 } as const
