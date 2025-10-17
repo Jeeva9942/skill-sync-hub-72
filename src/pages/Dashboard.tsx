@@ -15,9 +15,27 @@ interface Profile {
   avatar_url?: string;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  status: string;
+  created_at: string;
+}
+
+interface Bid {
+  id: string;
+  amount: number;
+  status: string;
+  projects: {
+    title: string;
+  };
+}
+
 export default function Dashboard() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,6 +72,27 @@ export default function Dashboard() {
 
       if (error) throw error;
       setProfile(data);
+
+      // Fetch projects or bids based on user role
+      if (data.user_role === "client") {
+        const { data: projectsData } = await supabase
+          .from("projects")
+          .select("id, title, status, created_at")
+          .eq("client_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        
+        setProjects(projectsData || []);
+      } else {
+        const { data: bidsData } = await supabase
+          .from("bids")
+          .select("id, amount, status, projects(title)")
+          .eq("freelancer_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        
+        setBids(bidsData || []);
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -137,7 +176,10 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 hover:shadow-glow transition-shadow cursor-pointer">
+          <Card 
+            className="p-6 hover:shadow-glow transition-shadow cursor-pointer"
+            onClick={() => navigate(profile?.user_role === "client" ? "/post-project" : "/browse-projects")}
+          >
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary-light rounded-lg">
                 <Plus className="h-6 w-6 text-primary" />
@@ -151,7 +193,10 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-glow transition-shadow cursor-pointer">
+          <Card 
+            className="p-6 hover:shadow-glow transition-shadow cursor-pointer"
+            onClick={() => navigate("/my-profile")}
+          >
             <div className="flex items-center gap-4">
               <div className="p-3 bg-secondary-light rounded-lg">
                 <User className="h-6 w-6 text-secondary" />
@@ -163,7 +208,10 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-glow transition-shadow cursor-pointer">
+          <Card 
+            className="p-6 hover:shadow-glow transition-shadow cursor-pointer"
+            onClick={() => navigate("/analytics")}
+          >
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary-light rounded-lg">
                 <BarChart className="h-6 w-6 text-primary" />
@@ -184,14 +232,74 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold mb-4">
                 {profile?.user_role === "client" ? "Active Projects" : "My Proposals"}
               </h2>
-              <div className="text-center py-12 text-muted-foreground">
-                <p>No {profile?.user_role === "client" ? "projects" : "proposals"} yet</p>
-                <p className="text-sm mt-2">
-                  {profile?.user_role === "client"
-                    ? "Post your first project to get started"
-                    : "Start browsing projects and submit proposals"}
-                </p>
-              </div>
+              
+              {profile?.user_role === "client" ? (
+                projects.length > 0 ? (
+                  <div className="space-y-3">
+                    {projects.map((project) => (
+                      <div 
+                        key={project.id}
+                        className="p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer"
+                        onClick={() => navigate(`/browse-projects`)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold">{project.title}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Status: <span className="capitalize">{project.status}</span>
+                            </p>
+                          </div>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            project.status === 'open' ? 'bg-green-100 text-green-700' :
+                            project.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {project.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p>No projects yet</p>
+                    <p className="text-sm mt-2">Post your first project to get started</p>
+                  </div>
+                )
+              ) : (
+                bids.length > 0 ? (
+                  <div className="space-y-3">
+                    {bids.map((bid) => (
+                      <div 
+                        key={bid.id}
+                        className="p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer"
+                        onClick={() => navigate(`/browse-projects`)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold">{bid.projects.title}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Bid Amount: ${bid.amount}
+                            </p>
+                          </div>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            bid.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                            bid.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {bid.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p>No proposals yet</p>
+                    <p className="text-sm mt-2">Start browsing projects and submit proposals</p>
+                  </div>
+                )
+              )}
             </Card>
           </div>
 

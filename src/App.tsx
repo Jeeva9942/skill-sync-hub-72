@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import Analytics from "./pages/Analytics";
 import BrowseProjects from "./pages/BrowseProjects";
 import FindFreelancers from "./pages/FindFreelancers";
 import MyProfile from "./pages/MyProfile";
