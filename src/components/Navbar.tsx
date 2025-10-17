@@ -19,21 +19,30 @@ export const Navbar = () => {
           <Link to="/browse-projects" className="text-sm font-medium hover:text-primary transition-colors">
             Browse Projects
           </Link>
-          <Link to="/freelancers" className="text-sm font-medium hover:text-primary transition-colors">
-            Find Talent
+          <Link to="/find-freelancers" className="text-sm font-medium hover:text-primary transition-colors">
+            Find Freelancers
           </Link>
-          <Link to="/how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
-            How it Works
+          <Link to="/post-project" className="text-sm font-medium hover:text-primary transition-colors">
+            Post Project
+          </Link>
+          <Link to="/messages" className="text-sm font-medium hover:text-primary transition-colors">
+            Messages
+          </Link>
+          <Link to="/my-profile" className="text-sm font-medium hover:text-primary transition-colors">
+            My Profile
+          </Link>
+          <Link to="/help" className="text-sm font-medium hover:text-primary transition-colors">
+            Help
           </Link>
         </div>
 
         <div className="flex items-center gap-3">
-          <Link to="/auth">
-            <Button variant="ghost">Sign In</Button>
+          <Link to="/dashboard">
+            <Button variant="ghost">Dashboard</Button>
           </Link>
           <Link to="/auth">
             <Button className="bg-gradient-hero hover:opacity-90 transition-opacity">
-              Get Started
+              Sign In
             </Button>
           </Link>
         </div>

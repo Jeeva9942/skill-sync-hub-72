@@ -62,16 +62,61 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          project_id: string | null
+          receiver_id: string
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          project_id?: string | null
+          receiver_id: string
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          project_id?: string | null
+          receiver_id?: string
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
+          certifications: string[] | null
           created_at: string | null
           email: string
+          experience_years: number | null
           full_name: string
           hourly_rate: number | null
           id: string
+          languages: string[] | null
           location: string | null
+          portfolio_url: string | null
           skills: string[] | null
           updated_at: string | null
           user_role: Database["public"]["Enums"]["user_role"]
@@ -79,12 +124,16 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          certifications?: string[] | null
           created_at?: string | null
           email: string
+          experience_years?: number | null
           full_name: string
           hourly_rate?: number | null
           id: string
+          languages?: string[] | null
           location?: string | null
+          portfolio_url?: string | null
           skills?: string[] | null
           updated_at?: string | null
           user_role?: Database["public"]["Enums"]["user_role"]
@@ -92,12 +141,16 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          certifications?: string[] | null
           created_at?: string | null
           email?: string
+          experience_years?: number | null
           full_name?: string
           hourly_rate?: number | null
           id?: string
+          languages?: string[] | null
           location?: string | null
+          portfolio_url?: string | null
           skills?: string[] | null
           updated_at?: string | null
           user_role?: Database["public"]["Enums"]["user_role"]
@@ -215,6 +268,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      support_tickets: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          id: string
+          priority: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
