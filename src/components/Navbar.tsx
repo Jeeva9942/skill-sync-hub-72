@@ -102,18 +102,18 @@ export const Navbar = () => {
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <>
-              <Link to="/dashboard">
-                <Button variant="ghost">Dashboard</Button>
+              <Link to="/dashboard" className="hidden sm:block">
+                <Button variant="ghost" size="sm">Dashboard</Button>
               </Link>
               {profile && (
                 <Link to="/my-profile" className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                     <AvatarImage src={profile.avatar_url} />
                     <AvatarFallback>
-                      <User className="h-4 w-4" />
+                      <User className="h-3 w-3 sm:h-4 sm:w-4" />
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium hidden lg:inline">{profile.full_name}</span>
@@ -123,14 +123,16 @@ export const Navbar = () => {
                 variant="ghost" 
                 size="sm"
                 onClick={handleSignOut}
+                className="text-xs sm:text-sm"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">Out</span>
               </Button>
             </>
           ) : (
             <Link to="/auth">
-              <Button className="bg-gradient-hero hover:opacity-90 transition-opacity">
+              <Button className="bg-gradient-hero hover:opacity-90 transition-opacity text-xs sm:text-sm px-3 sm:px-4 py-2">
                 Sign In
               </Button>
             </Link>
