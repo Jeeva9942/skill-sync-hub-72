@@ -15,6 +15,8 @@ import PostProject from "./pages/PostProject";
 import Messages from "./pages/Messages";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
+import ProjectDetails from "./pages/ProjectDetails";
+import FreelancerProfile from "./pages/FreelancerProfile";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,9 @@ const App = () => (
           <Route path="/post-project" element={<PostProject />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/help" element={<Help />} />
+          <Route path="/project/:id" element={<ProjectDetails />} />
+          <Route path="/profile/:id" element={<FreelancerProfile />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

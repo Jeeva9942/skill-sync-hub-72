@@ -81,6 +81,7 @@ const MyProfile = () => {
           hourly_rate: profile.hourly_rate ? parseFloat(profile.hourly_rate) : null,
           experience_years: profile.experience_years ? parseInt(profile.experience_years) : null,
           portfolio_url: profile.portfolio_url,
+          avatar_url: profile.avatar_url,
           skills: profile.skills,
           languages: profile.languages,
           certifications: profile.certifications
@@ -165,13 +166,22 @@ const MyProfile = () => {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={profile.avatar_url} />
+                    <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
+                  </Avatar>
+                  <Input
+                    type="url"
+                    placeholder="Avatar URL"
+                    value={profile.avatar_url || ""}
+                    onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
+                    className="mt-2"
+                  />
+                </div>
                 <div>
                   <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>Update your profile details</CardDescription>
+                  <CardDescription>Update your profile details and avatar</CardDescription>
                 </div>
               </div>
             </CardHeader>
