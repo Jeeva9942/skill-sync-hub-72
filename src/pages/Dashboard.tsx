@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, User, LogOut, Settings, BarChart } from "lucide-react";
+import { Briefcase, Plus, User, LogOut, Settings, BarChart, Shield } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
+import { calculateProfileCompletion, getProfileCompletionTips } from "@/utils/profileCompletion";
 
 interface Profile {
   id: string;
@@ -13,6 +14,15 @@ interface Profile {
   email: string;
   user_role: "client" | "freelancer";
   avatar_url?: string;
+  verification_status?: string;
+  bio?: string;
+  location?: string;
+  hourly_rate?: number;
+  experience_years?: number;
+  portfolio_url?: string;
+  skills?: string[];
+  languages?: string[];
+  certifications?: string[];
 }
 
 interface Project {
@@ -37,6 +47,8 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileCompletion, setProfileCompletion] = useState(0);
+  const [completionTips, setCompletionTips] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -72,6 +84,11 @@ export default function Dashboard() {
 
       if (error) throw error;
       setProfile(data);
+
+      // Calculate profile completion
+      const completion = calculateProfileCompletion(data);
+      setProfileCompletion(completion);
+      setCompletionTips(getProfileCompletionTips(data));
 
       // Fetch projects or bids based on user role
       if (data.user_role === "client") {
@@ -310,29 +327,75 @@ export default function Dashboard() {
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span>Progress</span>
-                  <span className="text-primary font-medium">40%</span>
+                  <span className="text-primary font-medium">{profileCompletion}%</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-hero w-[40%] rounded-full" />
+                  <div 
+                    className="h-full bg-gradient-hero rounded-full transition-all duration-500" 
+                    style={{ width: `${profileCompletion}%` }}
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Complete your profile to increase visibility
-                </p>
+                {completionTips.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium">To improve:</p>
+                    {completionTips.slice(0, 3).map((tip, index) => (
+                      <p key={index} className="text-xs text-muted-foreground">• {tip}</p>
+                    ))}
+                  </div>
+                )}
+                {profileCompletion === 100 && (
+                  <p className="text-xs text-green-600 font-medium mt-2">
+                    ✓ Your profile is complete!
+                  </p>
+                )}
               </div>
             </Card>
 
             <Card className="p-6 bg-gradient-hero text-white">
-              <h3 className="font-semibold mb-2">Get Verified</h3>
-              <p className="text-sm text-white/90 mb-4">
-                Boost your credibility and win more projects
-              </p>
-              <Button 
-                size="sm" 
-                className="bg-white text-primary hover:bg-white/90 w-full"
-                onClick={() => navigate("/help")}
-              >
-                Start Verification
-              </Button>
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="h-5 w-5" />
+                <h3 className="font-semibold">Get Verified</h3>
+              </div>
+              {profile?.verification_status === "verified" ? (
+                <>
+                  <p className="text-sm text-white/90 mb-4">
+                    ✓ You are verified!
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="bg-white text-primary hover:bg-white/90 w-full"
+                    disabled
+                  >
+                    Verified
+                  </Button>
+                </>
+              ) : profile?.verification_status === "pending" ? (
+                <>
+                  <p className="text-sm text-white/90 mb-4">
+                    Your verification is pending review
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="bg-white text-primary hover:bg-white/90 w-full"
+                    onClick={() => navigate("/verification")}
+                  >
+                    View Status
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-white/90 mb-4">
+                    Boost your credibility and win more projects
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="bg-white text-primary hover:bg-white/90 w-full"
+                    onClick={() => navigate("/verification")}
+                  >
+                    Start Verification
+                  </Button>
+                </>
+              )}
             </Card>
           </div>
         </div>
