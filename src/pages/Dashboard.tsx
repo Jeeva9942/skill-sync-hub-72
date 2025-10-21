@@ -326,7 +326,11 @@ export default function Dashboard() {
               <p className="text-sm text-white/90 mb-4">
                 Boost your credibility and win more projects
               </p>
-              <Button size="sm" className="bg-white text-primary hover:bg-white/90 w-full">
+              <Button 
+                size="sm" 
+                className="bg-white text-primary hover:bg-white/90 w-full"
+                onClick={() => navigate("/help")}
+              >
                 Start Verification
               </Button>
             </Card>
