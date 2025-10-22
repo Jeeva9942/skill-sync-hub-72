@@ -15,6 +15,7 @@ const BrowseProjects = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categories, setCategories] = useState<string[]>(["all"]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -23,14 +24,28 @@ const BrowseProjects = () => {
     fetchProjects();
   }, [categoryFilter]);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("category", { count: "exact", head: false })
+          .order("category", { ascending: true });
+        if (error) throw error;
+        const unique = Array.from(new Set((data || []).map((p: any) => p.category))).filter(Boolean);
+        setCategories(["all", ...unique]);
+      } catch {
+        setCategories(["all", "web_development", "mobile_development", "design", "writing", "marketing", "data_science", "other"]);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const fetchProjects = async () => {
     try {
       let query = supabase
         .from("projects")
-        .select(`
-          *,
-          profiles:client_id (full_name, avatar_url)
-        `)
+        .select("*")
         .eq("status", "open")
         .order("created_at", { ascending: false });
 
@@ -87,15 +102,11 @@ const BrowseProjects = () => {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="web_development">Web Development</SelectItem>
-                <SelectItem value="mobile_development">Mobile Development</SelectItem>
-                <SelectItem value="design">Design</SelectItem>
-                <SelectItem value="writing">Writing</SelectItem>
-                <SelectItem value="marketing">Marketing</SelectItem>
-                <SelectItem value="data_science">Data Science</SelectItem>
-                <SelectItem value="video_editing">Video Editing</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat === "all" ? "All Categories" : cat.replace(/_/g, " ")}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -116,7 +127,7 @@ const BrowseProjects = () => {
                       <Badge variant="secondary">{project.category.replace(/_/g, ' ')}</Badge>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <User className="h-4 w-4" />
-                        {project.profiles?.full_name || 'Client'}
+                        Client
                       </div>
                     </div>
                     <CardTitle className="mt-2">{project.title}</CardTitle>

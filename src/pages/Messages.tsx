@@ -49,37 +49,46 @@ const Messages = () => {
 
   const fetchConversations = async () => {
     try {
-      // Get unique conversation partners
-      const { data: sentMessages, error: sentError } = await supabase
+      // Fetch all messages where current user is either sender or receiver
+      const { data, error } = await supabase
         .from("messages")
-        .select("receiver_id, profiles!messages_receiver_id_fkey(id, full_name, avatar_url)")
-        .eq("sender_id", user.id)
+        .select("sender_id, receiver_id, created_at")
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
-      const { data: receivedMessages, error: receivedError } = await supabase
-        .from("messages")
-        .select("sender_id, profiles!messages_sender_id_fkey(id, full_name, avatar_url)")
-        .eq("receiver_id", user.id)
-        .order("created_at", { ascending: false });
+      if (error) throw error;
 
-      if (sentError || receivedError) throw sentError || receivedError;
-
-      // Combine and deduplicate conversations
-      const allConversations = new Map();
-      
-      sentMessages?.forEach((msg: any) => {
-        if (msg.profiles) {
-          allConversations.set(msg.receiver_id, msg.profiles);
-        }
-      });
-      
-      receivedMessages?.forEach((msg: any) => {
-        if (msg.profiles && !allConversations.has(msg.sender_id)) {
-          allConversations.set(msg.sender_id, msg.profiles);
+      // Build unique partner ids keeping latest order
+      const partnerOrder: string[] = [];
+      const seen = new Set<string>();
+      (data || []).forEach((m: any) => {
+        const partnerId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+        if (!seen.has(partnerId)) {
+          seen.add(partnerId);
+          partnerOrder.push(partnerId);
         }
       });
 
-      setConversations(Array.from(allConversations.values()));
+      if (partnerOrder.length === 0) {
+        setConversations([]);
+        return;
+      }
+
+      // Fetch partner profiles in one query
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", partnerOrder);
+
+      if (profilesError) throw profilesError;
+
+      // Keep original ordering
+      const profileMap = new Map((profilesData || []).map((p: any) => [p.id, p]));
+      const ordered = partnerOrder
+        .map((id) => profileMap.get(id))
+        .filter(Boolean);
+
+      setConversations(ordered as any[]);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -95,7 +104,7 @@ const Messages = () => {
     try {
       const { data, error } = await supabase
         .from("messages")
-        .select("*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url)")
+        .select("*")
         .or(`and(sender_id.eq.${user.id},receiver_id.eq.${conversationPartnerId}),and(sender_id.eq.${conversationPartnerId},receiver_id.eq.${user.id})`)
         .order("created_at", { ascending: true });
 
@@ -125,11 +134,20 @@ const Messages = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
-          filter: `receiver_id=eq.${user.id}`
+          table: 'messages'
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new]);
+          const msg = payload.new as any;
+          // Only handle messages related to current user
+          if (msg.sender_id === user.id || msg.receiver_id === user.id) {
+            // If current conversation is open with this partner, append
+            const partnerId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+            if (!selectedConversation || selectedConversation.id === partnerId) {
+              setMessages((prev) => [...prev, msg]);
+            }
+            // Refresh conversations to ensure new partner appears
+            fetchConversations();
+          }
         }
       )
       .subscribe();

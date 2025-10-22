@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, User, LogOut, Settings, BarChart, Shield } from "lucide-react";
+import { Briefcase, Plus, User, LogOut, BarChart, Shield } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { calculateProfileCompletion, getProfileCompletionTips } from "@/utils/profileCompletion";
 
@@ -162,10 +162,6 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/admin")}>
-              <Settings className="h-4 w-4 mr-2" />
-              Admin
-            </Button>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out

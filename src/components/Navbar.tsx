@@ -95,6 +95,9 @@ export const Navbar = () => {
               <Link to="/my-profile" className="text-sm font-medium hover:text-primary transition-colors">
                 My Profile
               </Link>
+              <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+                Dashboard
+              </Link>
             </>
           )}
           <Link to="/help" className="text-sm font-medium hover:text-primary transition-colors">
