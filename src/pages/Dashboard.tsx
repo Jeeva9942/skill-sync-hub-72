@@ -4,9 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, User, LogOut, BarChart, Shield } from "lucide-react";
+import { Briefcase, Plus, User, BarChart, Shield } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { calculateProfileCompletion, getProfileCompletionTips } from "@/utils/profileCompletion";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 interface Profile {
   id: string;
@@ -121,21 +123,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Signed out successfully",
-      });
-      navigate("/");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -149,29 +136,10 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="bg-background border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl">
-            <div className="p-2 bg-gradient-hero rounded-lg">
-              <Briefcase className="h-5 w-5 text-white" />
-            </div>
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Skill Sync
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
-
+      <Navbar />
+      
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-32">
         {/* Welcome Section */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-2">
@@ -396,6 +364,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }
