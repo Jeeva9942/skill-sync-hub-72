@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, User, BarChart, Shield } from "lucide-react";
+import { Briefcase, Plus, User, BarChart, Shield, Trash2 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { calculateProfileCompletion, getProfileCompletionTips } from "@/utils/profileCompletion";
 import { Navbar } from "@/components/Navbar";
@@ -39,6 +39,7 @@ interface Bid {
   amount: number;
   status: string;
   projects: {
+    id: string;
     title: string;
   };
 }
@@ -94,23 +95,9 @@ export default function Dashboard() {
 
       // Fetch projects or bids based on user role
       if (data.user_role === "client") {
-        const { data: projectsData } = await supabase
-          .from("projects")
-          .select("id, title, status, created_at")
-          .eq("client_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(5);
-        
-        setProjects(projectsData || []);
+        await fetchProjects(userId);
       } else {
-        const { data: bidsData } = await supabase
-          .from("bids")
-          .select("id, amount, status, projects(title)")
-          .eq("freelancer_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(5);
-        
-        setBids(bidsData || []);
+        await fetchBids(userId);
       }
     } catch (error: any) {
       toast({
@@ -120,6 +107,60 @@ export default function Dashboard() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProjects = async (userId: string) => {
+    const { data: projectsData } = await supabase
+      .from("projects")
+      .select("id, title, status, created_at")
+      .eq("client_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    
+    setProjects(projectsData || []);
+  };
+
+  const fetchBids = async (userId: string) => {
+    const { data: bidsData } = await supabase
+      .from("bids")
+      .select("id, amount, status, projects(title, id)")
+      .eq("freelancer_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    
+    setBids(bidsData || []);
+  };
+
+  const handleDeleteProject = async (projectId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!confirm("Are you sure you want to delete this project?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", projectId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+
+      if (session?.user?.id) {
+        fetchProjects(session.user.id);
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete project",
+      });
     }
   };
 
@@ -230,7 +271,7 @@ export default function Dashboard() {
                       <div 
                         key={project.id}
                         className="group p-4 border-2 rounded-xl hover:border-primary/50 transition-all duration-300 cursor-pointer bg-gradient-card hover:shadow-soft animate-fade-in"
-                        onClick={() => navigate(`/browse-projects`)}
+                        onClick={() => navigate(`/project/${project.id}`)}
                         style={{ animationDelay: `${0.1 * index}s` }}
                       >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
@@ -242,15 +283,25 @@ export default function Dashboard() {
                               Status: <span className="capitalize font-medium">{project.status.replace('_', ' ')}</span>
                             </p>
                           </div>
-                          <span className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap self-start ${
-                            project.status === 'open' 
-                              ? 'bg-green-500/10 text-green-600 border border-green-500/20' 
-                              : project.status === 'in_progress' 
-                              ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' 
-                              : 'bg-muted text-muted-foreground border border-border'
-                          }`}>
-                            {project.status.replace('_', ' ')}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                              project.status === 'open' 
+                                ? 'bg-green-500/10 text-green-600 border border-green-500/20' 
+                                : project.status === 'in_progress' 
+                                ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' 
+                                : 'bg-muted text-muted-foreground border border-border'
+                            }`}>
+                              {project.status.replace('_', ' ')}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                              onClick={(e) => handleDeleteProject(project.id, e)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -277,7 +328,7 @@ export default function Dashboard() {
                       <div 
                         key={bid.id}
                         className="group p-4 border-2 rounded-xl hover:border-primary/50 transition-all duration-300 cursor-pointer bg-gradient-card hover:shadow-soft animate-fade-in"
-                        onClick={() => navigate(`/browse-projects`)}
+                        onClick={() => navigate(`/project/${bid.projects.id}`)}
                         style={{ animationDelay: `${0.1 * index}s` }}
                       >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
