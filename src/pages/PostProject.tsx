@@ -14,6 +14,7 @@ import { Briefcase } from "lucide-react";
 
 const PostProject = () => {
   const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [project, setProject] = useState({
     title: "",
@@ -37,6 +38,14 @@ const PostProject = () => {
       return;
     }
     setUser(user);
+    
+    // Fetch user profile to determine role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    setUserProfile(profile);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,24 +62,40 @@ const PostProject = () => {
 
     setLoading(true);
     try {
+      // Clients post projects looking for freelancers
+      // Freelancers post projects as service offerings
+      const projectData: any = {
+        title: project.title,
+        description: project.description,
+        category: project.category,
+        budget_min: project.budget_min ? parseFloat(project.budget_min) : null,
+        budget_max: project.budget_max ? parseFloat(project.budget_max) : null,
+        deadline: project.deadline || null,
+        status: "open"
+      };
+
+      if (userProfile?.user_role === "freelancer") {
+        // Freelancer proposing their services
+        projectData.freelancer_id = user.id;
+        projectData.client_id = user.id; // Required field, set to self
+      } else {
+        // Client posting a project
+        projectData.client_id = user.id;
+      }
+
       const { error } = await supabase
         .from("projects")
-        .insert({
-          client_id: user.id,
-          title: project.title,
-          description: project.description,
-          category: project.category as any,
-          budget_min: project.budget_min ? parseFloat(project.budget_min) : null,
-          budget_max: project.budget_max ? parseFloat(project.budget_max) : null,
-          deadline: project.deadline || null,
-          status: "open"
-        } as any);
+        .insert(projectData);
       
       if (error) throw error;
       
+      const message = userProfile?.user_role === "freelancer" 
+        ? "Service proposal posted successfully!" 
+        : "Project posted successfully!";
+      
       toast({
         title: "Success",
-        description: "Project posted successfully!",
+        description: message,
       });
       navigate("/browse-projects");
     } catch (error: any) {
@@ -92,9 +117,16 @@ const PostProject = () => {
         <div className="container mx-auto max-w-3xl">
           <div className="text-center mb-12">
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-              Post a <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Project</span>
+              {userProfile?.user_role === "freelancer" ? "Propose Your " : "Post a "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                {userProfile?.user_role === "freelancer" ? "Services" : "Project"}
+              </span>
             </h1>
-            <p className="text-xl text-muted-foreground">Find the perfect freelancer for your project</p>
+            <p className="text-xl text-muted-foreground">
+              {userProfile?.user_role === "freelancer" 
+                ? "Share your expertise and attract clients" 
+                : "Find the perfect freelancer for your project"}
+            </p>
           </div>
 
           <Card>
@@ -102,31 +134,49 @@ const PostProject = () => {
               <div className="flex items-center gap-3">
                 <Briefcase className="h-6 w-6 text-primary" />
                 <div>
-                  <CardTitle>Project Details</CardTitle>
-                  <CardDescription>Provide information about your project</CardDescription>
+                  <CardTitle>
+                    {userProfile?.user_role === "freelancer" ? "Service Details" : "Project Details"}
+                  </CardTitle>
+                  <CardDescription>
+                    {userProfile?.user_role === "freelancer"
+                      ? "Describe the services you offer"
+                      : "Provide information about your project"}
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Project Title *</Label>
+                  <Label htmlFor="title">
+                    {userProfile?.user_role === "freelancer" ? "Service Title" : "Project Title"} *
+                  </Label>
                   <Input
                     id="title"
                     value={project.title}
                     onChange={(e) => setProject({ ...project, title: e.target.value })}
-                    placeholder="e.g., Build a responsive website"
+                    placeholder={
+                      userProfile?.user_role === "freelancer"
+                        ? "e.g., Professional Web Development Services"
+                        : "e.g., Build a responsive website"
+                    }
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Project Description *</Label>
+                  <Label htmlFor="description">
+                    {userProfile?.user_role === "freelancer" ? "Service Description" : "Project Description"} *
+                  </Label>
                   <Textarea
                     id="description"
                     value={project.description}
                     onChange={(e) => setProject({ ...project, description: e.target.value })}
-                    placeholder="Describe your project requirements in detail..."
+                    placeholder={
+                      userProfile?.user_role === "freelancer"
+                        ? "Describe your skills, experience, and what you can offer..."
+                        : "Describe your project requirements in detail..."
+                    }
                     rows={6}
                     required
                   />
@@ -156,7 +206,9 @@ const PostProject = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="budget_min">Minimum Budget ($)</Label>
+                    <Label htmlFor="budget_min">
+                      {userProfile?.user_role === "freelancer" ? "Minimum Rate ($)" : "Minimum Budget ($)"}
+                    </Label>
                     <Input
                       id="budget_min"
                       type="number"
@@ -167,7 +219,9 @@ const PostProject = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="budget_max">Maximum Budget ($)</Label>
+                    <Label htmlFor="budget_max">
+                      {userProfile?.user_role === "freelancer" ? "Maximum Rate ($)" : "Maximum Budget ($)"}
+                    </Label>
                     <Input
                       id="budget_max"
                       type="number"
@@ -192,7 +246,11 @@ const PostProject = () => {
 
                 <div className="flex gap-4">
                   <Button type="submit" disabled={loading} className="flex-1">
-                    {loading ? "Posting..." : "Post Project"}
+                    {loading 
+                      ? "Posting..." 
+                      : userProfile?.user_role === "freelancer" 
+                        ? "Post Service" 
+                        : "Post Project"}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => navigate("/dashboard")}>
                     Cancel
