@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { DollarSign, Calendar, User, Briefcase, MessageSquare } from "lucide-react";
+import { DollarSign, Calendar, User, Briefcase, MessageSquare, CheckCircle } from "lucide-react";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -152,6 +152,59 @@ const ProjectDetails = () => {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleAcceptBid = async (bid: any) => {
+    try {
+      // Update bid status
+      const { error: bidError } = await supabase
+        .from("bids")
+        .update({ status: "accepted" })
+        .eq("id", bid.id);
+
+      if (bidError) throw bidError;
+
+      // Update project with freelancer and status
+      const { error: projectError } = await supabase
+        .from("projects")
+        .update({ 
+          freelancer_id: bid.freelancer_id,
+          status: "in_progress"
+        })
+        .eq("id", id);
+
+      if (projectError) throw projectError;
+
+      // Send hire notification email
+      try {
+        await supabase.functions.invoke('send-hire-notification', {
+          body: {
+            clientEmail: userProfile.email,
+            clientName: userProfile.full_name,
+            freelancerName: bid.profiles?.full_name,
+            projectTitle: project.title,
+            bidAmount: bid.amount,
+            deliveryDays: bid.delivery_days,
+          },
+        });
+      } catch (emailError) {
+        console.error('Error sending hire notification:', emailError);
+      }
+
+      toast({
+        title: "Success!",
+        description: "Freelancer hired successfully! Notification email sent.",
+      });
+
+      fetchProjectDetails();
+      fetchBids();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -296,7 +349,17 @@ const ProjectDetails = () => {
                                   {bid.status}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">{bid.proposal}</p>
+                              <p className="text-sm text-muted-foreground mb-4">{bid.proposal}</p>
+                              {bid.status === 'pending' && project.status === 'open' && (
+                                <Button 
+                                  onClick={() => handleAcceptBid(bid)}
+                                  className="w-full bg-gradient-hero"
+                                  size="sm"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Accept & Hire
+                                </Button>
+                              )}
                             </CardContent>
                           </Card>
                         ))}

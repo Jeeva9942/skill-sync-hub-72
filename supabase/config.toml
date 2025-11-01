@@ -1,1 +1,7 @@
 project_id = "pixpassqqrqttuozaqgr"
+
+[functions.send-welcome-email]
+verify_jwt = false
+
+[functions.send-hire-notification]
+verify_jwt = false

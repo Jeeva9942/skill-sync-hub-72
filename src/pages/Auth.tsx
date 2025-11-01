@@ -56,6 +56,18 @@ export default function Auth() {
 
       if (error) throw error;
 
+      // Send welcome email
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: {
+            email,
+            fullName,
+          },
+        });
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+      }
+
       toast({
         title: "Success!",
         description: "Please check your email to verify your account.",

@@ -170,95 +170,107 @@ export const Navbar = () => {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-              <div className="flex flex-col gap-6 py-6">
+            <SheetContent side="right" className="w-[300px] sm:w-[380px] bg-gradient-to-br from-background via-background to-primary/5">
+              <div className="flex flex-col gap-8 py-8">
                 {/* User Profile Section */}
                 {user && profile && (
                   <Link 
                     to="/my-profile" 
-                    className="flex items-center gap-3 p-3 rounded-lg bg-gradient-card border"
+                    className="group flex items-center gap-4 p-4 rounded-2xl bg-gradient-card border-2 border-primary/10 hover:border-primary/30 hover:shadow-glow transition-all duration-300"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                    <Avatar className="h-16 w-16 ring-2 ring-primary/30 group-hover:ring-primary/50 transition-all">
                       <AvatarImage src={profile.avatar_url} />
-                      <AvatarFallback className="bg-gradient-hero text-white">
-                        <User className="h-5 w-5" />
+                      <AvatarFallback className="bg-gradient-hero text-white text-lg">
+                        <User className="h-7 w-7" />
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-semibold">{profile.full_name}</p>
-                      <p className="text-sm text-muted-foreground">View Profile</p>
+                    <div className="flex-1">
+                      <p className="font-bold text-lg">{profile.full_name}</p>
+                      <p className="text-sm text-primary font-medium">View Profile →</p>
                     </div>
                   </Link>
                 )}
 
                 {/* Navigation Links */}
-                <div className="flex flex-col gap-2">
+                <nav className="flex flex-col gap-2">
                   <Link 
                     to="/browse-projects" 
-                    className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
+                    className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Browse Projects
+                    <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
+                      Browse Projects
+                    </span>
                   </Link>
                   <Link 
                     to="/find-freelancers" 
-                    className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
+                    className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Find Freelancers
+                    <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
+                      Find Freelancers
+                    </span>
                   </Link>
                   {user && (
                     <>
                       <Link 
                         to="/post-project" 
-                        className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
+                        className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Post Project
+                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
+                          Post Project
+                        </span>
                       </Link>
                       <Link 
                         to="/messages" 
-                        className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
+                        className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Messages
+                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
+                          Messages
+                        </span>
                       </Link>
                       <Link 
                         to="/dashboard" 
-                        className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
+                        className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Dashboard
+                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
+                          Dashboard
+                        </span>
                       </Link>
                     </>
                   )}
                   <Link 
                     to="/help" 
-                    className="px-4 py-3 text-sm font-medium hover:bg-muted rounded-lg transition-colors"
+                    className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Help
+                    <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
+                      Help
+                    </span>
                   </Link>
-                </div>
+                </nav>
 
                 {/* Auth Actions */}
-                <div className="border-t pt-4 mt-auto">
+                <div className="border-t-2 border-primary/10 pt-6 mt-auto">
                   {user ? (
                     <Button 
                       variant="outline" 
-                      className="w-full justify-start gap-2"
+                      className="w-full justify-center gap-3 py-6 text-base font-semibold border-2 hover:bg-destructive/10 hover:border-destructive hover:text-destructive rounded-xl transition-all"
                       onClick={() => {
                         handleSignOut();
                         setMobileMenuOpen(false);
                       }}
                     >
-                      <LogOut className="h-4 w-4" />
+                      <LogOut className="h-5 w-5" />
                       Sign Out
                     </Button>
                   ) : (
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full bg-gradient-hero hover:opacity-90 transition-opacity">
+                      <Button className="w-full bg-gradient-hero hover:opacity-90 hover:scale-105 transition-all py-6 text-base font-bold rounded-xl shadow-glow">
                         Sign In
                       </Button>
                     </Link>
