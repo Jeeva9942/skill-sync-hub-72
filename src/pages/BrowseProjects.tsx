@@ -138,7 +138,7 @@ const BrowseProjects = () => {
                       <div className="flex items-center gap-1 text-primary">
                         <DollarSign className="h-4 w-4" />
                         <span className="font-semibold">
-                          ${project.budget_min} - ${project.budget_max}
+                          ₹{project.budget_min} - ₹{project.budget_max}
                         </span>
                       </div>
                       {project.deadline && (

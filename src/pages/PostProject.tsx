@@ -207,7 +207,7 @@ const PostProject = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="budget_min">
-                      {userProfile?.user_role === "freelancer" ? "Minimum Rate ($)" : "Minimum Budget ($)"}
+                      {userProfile?.user_role === "freelancer" ? "Minimum Rate (₹)" : "Minimum Budget (₹)"}
                     </Label>
                     <Input
                       id="budget_min"
@@ -220,7 +220,7 @@ const PostProject = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="budget_max">
-                      {userProfile?.user_role === "freelancer" ? "Maximum Rate ($)" : "Maximum Budget ($)"}
+                      {userProfile?.user_role === "freelancer" ? "Maximum Rate (₹)" : "Maximum Budget (₹)"}
                     </Label>
                     <Input
                       id="budget_max"

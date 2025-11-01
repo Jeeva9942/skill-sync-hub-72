@@ -337,7 +337,7 @@ export default function Dashboard() {
                               {bid.projects.title}
                             </h3>
                             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                              Bid Amount: <span className="font-semibold text-primary">${bid.amount}</span>
+                              Bid Amount: <span className="font-semibold text-primary">₹{bid.amount}</span>
                             </p>
                           </div>
                           <span className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap self-start ${

@@ -248,7 +248,7 @@ const ProjectDetails = () => {
                       <DollarSign className="h-5 w-5 text-primary" />
                       <div>
                         <p className="text-sm text-muted-foreground">Budget</p>
-                        <p className="font-semibold">${project.budget_min} - ${project.budget_max}</p>
+                        <p className="font-semibold">₹{project.budget_min} - ₹{project.budget_max}</p>
                       </div>
                     </div>
                     {project.deadline && (
@@ -288,7 +288,7 @@ const ProjectDetails = () => {
                                   <div>
                                     <p className="font-semibold">{bid.profiles?.full_name}</p>
                                     <p className="text-sm text-muted-foreground">
-                                      ${bid.amount} • {bid.delivery_days} days
+                                      ₹{bid.amount} • {bid.delivery_days} days
                                     </p>
                                   </div>
                                 </div>
@@ -351,7 +351,7 @@ const ProjectDetails = () => {
                   <CardContent>
                     <form onSubmit={handleSubmitBid} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="amount">Bid Amount ($) *</Label>
+                        <Label htmlFor="amount">Bid Amount (₹) *</Label>
                         <Input
                           id="amount"
                           type="number"

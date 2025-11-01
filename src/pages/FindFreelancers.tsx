@@ -123,7 +123,7 @@ const FindFreelancers = () => {
                       {freelancer.hourly_rate && (
                         <div className="flex items-center gap-1 text-primary font-semibold">
                           <DollarSign className="h-4 w-4" />
-                          ${freelancer.hourly_rate}/hr
+                          ₹{freelancer.hourly_rate}/hr
                         </div>
                       )}
                       {freelancer.experience_years && (

@@ -158,7 +158,7 @@ const FreelancerProfile = () => {
                         <DollarSign className="h-5 w-5 text-primary" />
                         <div>
                           <p className="text-sm text-muted-foreground">Hourly Rate</p>
-                          <p className="font-semibold">${profile.hourly_rate}/hr</p>
+                          <p className="font-semibold">₹{profile.hourly_rate}/hr</p>
                         </div>
                       </div>
                     )}
