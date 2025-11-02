@@ -4,8 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Users, FolderKanban, DollarSign, LogOut, ArrowLeft } from "lucide-react";
+import { Briefcase, Users, FolderKanban, DollarSign, LogOut, ArrowLeft, LifeBuoy } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
+import { UserManagement } from "@/components/admin/UserManagement";
+import { ProjectsOverview } from "@/components/admin/ProjectsOverview";
+import { SupportTickets } from "@/components/admin/SupportTickets";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
   const [session, setSession] = useState<Session | null>(null);
@@ -197,47 +201,61 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Management Sections */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Recent Users</h2>
-            <div className="text-center py-12 text-muted-foreground">
-              <p>User management coming soon</p>
-            </div>
-          </Card>
+        {/* Management Tabs */}
+        <Card className="p-6">
+          <Tabs defaultValue="users" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="users">
+                <Users className="h-4 w-4 mr-2" />
+                Users
+              </TabsTrigger>
+              <TabsTrigger value="projects">
+                <FolderKanban className="h-4 w-4 mr-2" />
+                Projects
+              </TabsTrigger>
+              <TabsTrigger value="tickets">
+                <LifeBuoy className="h-4 w-4 mr-2" />
+                Support
+              </TabsTrigger>
+            </TabsList>
 
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Recent Projects</h2>
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Project management coming soon</p>
-            </div>
-          </Card>
+            <TabsContent value="users" className="mt-6">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">User Management</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Manage users and grant admin privileges. <strong className="text-destructive">Note: Passwords are encrypted and cannot be viewed for security reasons.</strong>
+                  </p>
+                </div>
+                <UserManagement />
+              </div>
+            </TabsContent>
 
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Platform Activity</h2>
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Activity logs coming soon</p>
-            </div>
-          </Card>
+            <TabsContent value="projects" className="mt-6">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">Recent Projects</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    View and monitor all projects on the platform
+                  </p>
+                </div>
+                <ProjectsOverview />
+              </div>
+            </TabsContent>
 
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">System Settings</h2>
-            <div className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                Manage Categories
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Payment Settings
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Email Templates
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Platform Fees
-              </Button>
-            </div>
-          </Card>
-        </div>
+            <TabsContent value="tickets" className="mt-6">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">Support Tickets</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Manage and resolve user support requests
+                  </p>
+                </div>
+                <SupportTickets />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </Card>
       </div>
     </div>
   );
