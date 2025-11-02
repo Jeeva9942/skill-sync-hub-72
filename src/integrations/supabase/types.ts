@@ -340,6 +340,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_admin_role: { Args: never; Returns: undefined }
       generate_gravatar_url: { Args: { email: string }; Returns: string }
       has_role: {
         Args: {

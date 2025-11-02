@@ -22,16 +22,35 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    const checkAdminAndRedirect = async (session: Session) => {
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .single();
+
+      if (roles) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    };
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) navigate("/dashboard");
+      if (session) {
+        checkAdminAndRedirect(session);
+      }
     });
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) navigate("/dashboard");
+      if (session) {
+        checkAdminAndRedirect(session);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -110,6 +129,39 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter your email address first.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Removed Google OAuth to enforce email/password only
 
 
@@ -175,6 +227,15 @@ export default function Auth() {
                 ) : (
                   "Sign In"
                 )}
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                className="w-full text-sm text-muted-foreground hover:text-primary"
+                onClick={handleForgotPassword}
+                disabled={loading}
+              >
+                Forgot password?
               </Button>
             </form>
           </TabsContent>

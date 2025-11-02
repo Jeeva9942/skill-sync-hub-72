@@ -17,6 +17,13 @@ import NotFound from "./pages/NotFound";
 import ProjectDetails from "./pages/ProjectDetails";
 import FreelancerProfile from "./pages/FreelancerProfile";
 import Verification from "./pages/Verification";
+import AdminDashboard from "./pages/AdminDashboard";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Blog from "./pages/Blog";
+import Contact from "./pages/Contact";
+import HowItWorks from "./pages/HowItWorks";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +47,13 @@ const App = () => (
           <Route path="/profile/:id" element={<FreelancerProfile />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/verification" element={<Verification />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/pricing" element={<Pricing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

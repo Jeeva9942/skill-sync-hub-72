@@ -86,11 +86,16 @@ export default function AdminDashboard() {
         .from("bids")
         .select("*", { count: "exact", head: true });
 
+      // Fetch support tickets count
+      const { count: ticketCount } = await supabase
+        .from("support_tickets")
+        .select("*", { count: "exact", head: true });
+
       setStats({
         totalUsers: userCount || 0,
         totalProjects: projectCount || 0,
         activeBids: bidCount || 0,
-        totalRevenue: 0, // Would calculate from completed projects
+        totalRevenue: ticketCount || 0,
       });
     } catch (error: any) {
       console.error("Error fetching stats:", error);
@@ -185,8 +190,8 @@ export default function AdminDashboard() {
                 <DollarSign className="h-6 w-6 text-secondary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Platform Revenue</p>
-                <p className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Support Tickets</p>
+                <p className="text-2xl font-bold">{stats.totalRevenue}</p>
               </div>
             </div>
           </Card>
