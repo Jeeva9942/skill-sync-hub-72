@@ -6,10 +6,11 @@ export const CTA = () => {
   return (
     <section className="py-20 px-4">
       <div className="container mx-auto">
-        <div className="relative overflow-hidden bg-gradient-hero rounded-2xl sm:rounded-3xl p-6 sm:p-12 md:p-16 text-white text-center">
+        <div className="relative overflow-hidden bg-gradient-rainbow rounded-2xl sm:rounded-3xl p-6 sm:p-12 md:p-16 text-white text-center shadow-premium">
           {/* Decorative Elements */}
-          <div className="absolute top-0 left-0 w-32 sm:w-64 h-32 sm:h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 animate-float" />
-          <div className="absolute bottom-0 right-0 w-48 sm:w-96 h-48 sm:h-96 bg-white/10 rounded-full translate-x-1/3 translate-y-1/3 animate-float" style={{ animationDelay: "1s" }} />
+          <div className="absolute top-0 left-0 w-32 sm:w-64 h-32 sm:h-64 bg-white/20 rounded-full -translate-x-1/2 -translate-y-1/2 animate-float blur-2xl" />
+          <div className="absolute bottom-0 right-0 w-48 sm:w-96 h-48 sm:h-96 bg-white/20 rounded-full translate-x-1/3 translate-y-1/3 animate-float blur-2xl" style={{ animationDelay: "1s" }} />
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent" />
           
           <div className="relative z-10 max-w-3xl mx-auto space-y-4 sm:space-y-6">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
@@ -20,13 +21,13 @@ export const CTA = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link to="/auth">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base w-full sm:w-auto">
+                <Button size="lg" className="bg-white text-primary hover:bg-white/95 hover:scale-105 shadow-premium hover:shadow-hover transition-all duration-300 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base w-full sm:w-auto font-bold">
                   Get Started Free
                   <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
               <Link to="/help">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/20 hover:scale-105 backdrop-blur-sm transition-all duration-300 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base w-full sm:w-auto font-semibold">
                   Learn More
                 </Button>
               </Link>
