@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const Messages = () => {
   const [user, setUser] = useState<any>(null);
@@ -157,6 +158,31 @@ const Messages = () => {
     };
   };
 
+  const clearChat = async () => {
+    if (!selectedConversation || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedConversation.id}),and(sender_id.eq.${selectedConversation.id},receiver_id.eq.${user.id})`);
+
+      if (error) throw error;
+
+      setMessages([]);
+      toast({
+        title: "Chat cleared",
+        description: "All messages have been deleted",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
@@ -243,27 +269,50 @@ const Messages = () => {
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="md:hidden"
-                    onClick={() => setSelectedConversation(null)}
-                  >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </Button>
-                  <Avatar className="h-10 w-10 border-2 border-primary/20">
-                    <AvatarImage src={selectedConversation.avatar_url} />
-                    <AvatarFallback className="bg-gradient-hero text-white font-semibold">
-                      {selectedConversation.full_name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{selectedConversation.full_name}</p>
-                    <p className="text-xs text-muted-foreground">Active now</p>
+                <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="md:hidden"
+                      onClick={() => setSelectedConversation(null)}
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </Button>
+                    <Avatar className="h-10 w-10 border-2 border-primary/20">
+                      <AvatarImage src={selectedConversation.avatar_url} />
+                      <AvatarFallback className="bg-gradient-hero text-white font-semibold">
+                        {selectedConversation.full_name?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{selectedConversation.full_name}</p>
+                      <p className="text-xs text-muted-foreground">Active now</p>
+                    </div>
                   </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Clear Chat History?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all messages with {selectedConversation.full_name}. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={clearChat} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          Clear Chat
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 {/* Messages Area */}
