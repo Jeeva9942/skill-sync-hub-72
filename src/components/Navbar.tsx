@@ -10,6 +10,7 @@ import { Briefcase, LogOut, User, Menu, X } from "lucide-react";
 export const Navbar = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -46,6 +47,15 @@ export const Navbar = () => {
         .eq("id", userId)
         .single();
       setProfile(data);
+
+      // Check admin status
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .single();
+      setIsAdmin(!!roleData);
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
@@ -119,6 +129,15 @@ export const Navbar = () => {
                 Dashboard
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-hero group-hover:w-full transition-all duration-300"></span>
               </Link>
+              {isAdmin && (
+                <Link 
+                  to="/admin" 
+                  className="text-sm font-medium hover:text-primary transition-colors relative group"
+                >
+                  Admin Dashboard
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-hero group-hover:w-full transition-all duration-300"></span>
+                </Link>
+              )}
             </>
           )}
           <Link 
@@ -241,6 +260,17 @@ export const Navbar = () => {
                           Dashboard
                         </span>
                       </Link>
+                      {isAdmin && (
+                        <Link 
+                          to="/admin" 
+                          className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
+                            Admin Dashboard
+                          </span>
+                        </Link>
+                      )}
                     </>
                   )}
                   <Link 
