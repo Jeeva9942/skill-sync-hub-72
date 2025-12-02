@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,7 @@ interface Message {
 }
 
 export const Chatbot = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -78,6 +80,11 @@ export const Chatbot = () => {
       sendMessage();
     }
   };
+
+  // Hide chatbot on messages page
+  if (location.pathname === '/messages') {
+    return null;
+  }
 
   return (
     <>

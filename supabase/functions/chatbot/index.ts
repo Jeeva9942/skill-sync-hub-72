@@ -94,57 +94,66 @@ serve(async (req) => {
 
   try {
     const { message, conversationHistory = [] } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     console.log('Processing chatbot query:', message);
 
-    // Build context with conversation history
-    const contextMessages = conversationHistory.map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
-
-    // Add current message
-    contextMessages.push({
-      role: 'user',
-      parts: [{ text: message }]
-    });
-
-    // Call Gemini API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+    // Build messages for OpenAI-compatible API
+    const messages = [
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: contextMessages,
-          systemInstruction: {
-            parts: [{
-              text: `You are a helpful AI assistant for Skill Sync, a freelancing platform. Use the following knowledge base to answer questions accurately and helpfully. If you don't find the answer in the knowledge base, provide general helpful guidance but mention that the user should contact support for specific details.\n\nKnowledge Base:\n${knowledgeBase}\n\nAlways be friendly, professional, and concise. Format responses with clear structure using bullet points when listing multiple items.`
-            }]
-          },
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000,
-          }
-        }),
+        role: 'system',
+        content: `You are a helpful AI assistant for Skill Sync, a freelancing platform. Use the following knowledge base to answer questions accurately and helpfully. If you don't find the answer in the knowledge base, provide general helpful guidance but mention that the user should contact support for specific details.\n\nKnowledge Base:\n${knowledgeBase}\n\nAlways be friendly, professional, and concise. Format responses with clear structure using bullet points when listing multiple items.`
+      },
+      ...conversationHistory.map((msg: any) => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      })),
+      {
+        role: 'user',
+        content: message
       }
-    );
+    ];
+
+    // Call Lovable AI Gateway
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
+        temperature: 0.7,
+        max_tokens: 1000,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('Lovable AI Gateway error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    const reply = data.candidates[0]?.content?.parts[0]?.text || 'Sorry, I could not generate a response.';
+    const reply = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
 
     console.log('Chatbot response generated successfully');
 
