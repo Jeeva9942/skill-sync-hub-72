@@ -124,7 +124,7 @@ const ProjectDetails = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
+      const { data: insertedBid, error } = await supabase
         .from("bids")
         .insert({
           project_id: id,
@@ -133,9 +133,24 @@ const ProjectDetails = () => {
           delivery_days: parseInt(bidForm.delivery_days),
           proposal: bidForm.proposal,
           status: "pending"
-        });
+        })
+        .select()
+        .single();
       
       if (error) throw error;
+      
+      // Sync bid to MongoDB
+      try {
+        await supabase.functions.invoke('sync-mongodb', {
+          body: {
+            action: 'sync-bid',
+            data: { bid_id: insertedBid.id, project_id: id }
+          }
+        });
+        console.log('Bid synced to MongoDB');
+      } catch (syncError) {
+        console.error('MongoDB sync error:', syncError);
+      }
       
       toast({
         title: "Success",
@@ -190,6 +205,19 @@ const ProjectDetails = () => {
         });
       } catch (emailError) {
         console.error('Error sending hire notification:', emailError);
+      }
+
+      // Sync to MongoDB after bid accepted
+      try {
+        await supabase.functions.invoke('sync-mongodb', {
+          body: {
+            action: 'sync-project',
+            data: { project_id: id }
+          }
+        });
+        console.log('Project synced to MongoDB after bid acceptance');
+      } catch (syncError) {
+        console.error('MongoDB sync error:', syncError);
       }
 
       toast({
