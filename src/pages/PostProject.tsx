@@ -83,11 +83,26 @@ const PostProject = () => {
         projectData.client_id = user.id;
       }
 
-      const { error } = await supabase
+      const { data: insertedProject, error } = await supabase
         .from("projects")
-        .insert(projectData);
+        .insert(projectData)
+        .select()
+        .single();
       
       if (error) throw error;
+      
+      // Sync to MongoDB
+      try {
+        await supabase.functions.invoke('sync-mongodb', {
+          body: {
+            action: 'sync-project',
+            data: { project_id: insertedProject.id }
+          }
+        });
+        console.log('Project synced to MongoDB');
+      } catch (syncError) {
+        console.error('MongoDB sync error:', syncError);
+      }
       
       const message = userProfile?.user_role === "freelancer" 
         ? "Service proposal posted successfully!" 
