@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Users, FolderKanban, DollarSign, LogOut, ArrowLeft, LifeBuoy } from "lucide-react";
+import { Briefcase, Users, FolderKanban, DollarSign, LogOut, ArrowLeft, LifeBuoy, RefreshCw, Database } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { ProjectsOverview } from "@/components/admin/ProjectsOverview";
@@ -111,6 +111,33 @@ export default function AdminDashboard() {
     navigate("/");
   };
 
+  const [syncing, setSyncing] = useState(false);
+
+  const handleMongoSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-mongodb', {
+        body: { action: 'sync-projects' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "MongoDB Sync Complete",
+        description: `Successfully synced ${data?.result?.synced || 0} projects. Failed: ${data?.result?.failed || 0}`,
+      });
+    } catch (error: any) {
+      console.error('MongoDB sync error:', error);
+      toast({
+        variant: "destructive",
+        title: "Sync Failed",
+        description: error.message || "Failed to sync with MongoDB",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -136,6 +163,20 @@ export default function AdminDashboard() {
               <p className="text-white/80">Manage your platform</p>
             </div>
             <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-white hover:bg-white/20" 
+                onClick={handleMongoSync}
+                disabled={syncing}
+              >
+                {syncing ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Database className="h-4 w-4 mr-2" />
+                )}
+                {syncing ? "Syncing..." : "Sync MongoDB"}
+              </Button>
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate("/dashboard")}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
