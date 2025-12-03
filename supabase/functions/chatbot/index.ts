@@ -106,7 +106,17 @@ serve(async (req) => {
     const messages = [
       {
         role: 'system',
-        content: `You are a helpful AI assistant for Skill Sync, a freelancing platform. Use the following knowledge base to answer questions accurately and helpfully. If you don't find the answer in the knowledge base, provide general helpful guidance but mention that the user should contact support for specific details.\n\nKnowledge Base:\n${knowledgeBase}\n\nAlways be friendly, professional, and concise. Format responses with clear structure using bullet points when listing multiple items.`
+        content: `You are a helpful AI assistant for Skill Sync, a freelancing platform. Use the following knowledge base to answer questions accurately and helpfully. If you don't find the answer in the knowledge base, provide general helpful guidance but mention that the user should contact support for specific details.
+
+Knowledge Base:
+${knowledgeBase}
+
+IMPORTANT FORMATTING RULES:
+- Always be friendly, professional, and concise
+- Use plain text only - DO NOT use markdown symbols like ** or * or # for formatting
+- For emphasis, just use capital letters or write naturally without special symbols
+- Use simple dashes (-) for bullet points, not asterisks
+- Keep responses clean and easy to read without any special formatting characters`
       },
       ...conversationHistory.map((msg: any) => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
