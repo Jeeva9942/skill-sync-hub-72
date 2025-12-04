@@ -1,30 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { MongoClient } from "https://deno.land/x/mongo@v0.32.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// MongoDB Atlas Data API helper using fetch
-async function mongoDBRequest(action: string, body: object, apiKey: string, dataApiUrl: string) {
-  const response = await fetch(`${dataApiUrl}/action/${action}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': apiKey,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('MongoDB Data API error:', response.status, errorText);
-    throw new Error(`MongoDB Data API error: ${response.status} - ${errorText}`);
-  }
-
-  return response.json();
-}
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -33,13 +14,12 @@ serve(async (req) => {
   }
 
   try {
-    const MONGODB_DATA_API_KEY = Deno.env.get('MONGODB_DATA_API_KEY');
-    const MONGODB_DATA_API_URL = Deno.env.get('MONGODB_DATA_API_URL');
+    const MONGODB_URI = Deno.env.get('MONGODB_URI');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!MONGODB_DATA_API_KEY || !MONGODB_DATA_API_URL) {
-      console.log('MongoDB Data API credentials not configured - sync disabled');
+    if (!MONGODB_URI) {
+      console.log('MongoDB URI not configured - sync disabled');
       return new Response(
         JSON.stringify({ success: true, message: 'MongoDB sync is disabled (credentials not configured)' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -55,38 +35,39 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const baseBody = {
-      dataSource: 'Cluster0',
-      database: 'skill_sync',
-      collection: collection || 'projects',
-    };
+    // Connect to MongoDB using the Deno driver
+    console.log('Connecting to MongoDB...');
+    const client = new MongoClient();
+    await client.connect(MONGODB_URI);
+    console.log('Connected to MongoDB successfully');
+
+    const db = client.database('skill_sync');
+    const projectsCollection = db.collection('projects');
 
     let result;
 
     switch (action) {
       case 'insertOne':
-        console.log(`Inserting document to MongoDB collection: ${collection}`, data);
-        result = await mongoDBRequest('insertOne', { ...baseBody, document: data }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
+        console.log(`Inserting document to MongoDB collection: ${collection || 'projects'}`, data);
+        result = await projectsCollection.insertOne(data);
         console.log('Insert result:', result);
         break;
 
       case 'updateOne':
-        console.log(`Updating document in MongoDB collection: ${collection}`);
-        result = await mongoDBRequest('updateOne', {
-          ...baseBody,
-          filter: filter || { _id: data._id || data.id },
-          update: { $set: data },
-          upsert: true,
-        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
+        console.log(`Updating document in MongoDB collection: ${collection || 'projects'}`);
+        const updateFilter = filter || { _id: data._id || data.id };
+        result = await projectsCollection.updateOne(
+          updateFilter,
+          { $set: data },
+          { upsert: true }
+        );
         console.log('Update result:', result);
         break;
 
       case 'deleteOne':
-        console.log(`Deleting document from MongoDB collection: ${collection}`);
-        result = await mongoDBRequest('deleteOne', {
-          ...baseBody,
-          filter: filter || { _id: data._id || data.id },
-        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
+        console.log(`Deleting document from MongoDB collection: ${collection || 'projects'}`);
+        const deleteFilter = filter || { _id: data._id || data.id };
+        result = await projectsCollection.deleteOne(deleteFilter);
         console.log('Delete result:', result);
         break;
 
@@ -127,12 +108,11 @@ serve(async (req) => {
           };
 
           try {
-            const syncResult = await mongoDBRequest('updateOne', {
-              ...baseBody,
-              filter: { _id: project.id },
-              update: { $set: projectWithBids },
-              upsert: true,
-            }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
+            const syncResult = await projectsCollection.updateOne(
+              { _id: project.id },
+              { $set: projectWithBids },
+              { upsert: true }
+            );
             projectResults.push({ project_id: project.id, success: true, result: syncResult });
             console.log(`Synced project ${project.id}: ${project.title}`);
           } catch (err) {
@@ -186,12 +166,11 @@ serve(async (req) => {
           synced_at: new Date().toISOString(),
         };
 
-        result = await mongoDBRequest('updateOne', {
-          ...baseBody,
-          filter: { _id: singleProject.id },
-          update: { $set: projectDoc },
-          upsert: true,
-        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
+        result = await projectsCollection.updateOne(
+          { _id: singleProject.id },
+          { $set: projectDoc },
+          { upsert: true }
+        );
         console.log(`Synced project ${singleProject.id} with ${projectBids?.length || 0} bids`);
         break;
 
@@ -233,12 +212,11 @@ serve(async (req) => {
           synced_at: new Date().toISOString(),
         };
 
-        result = await mongoDBRequest('updateOne', {
-          ...baseBody,
-          filter: { _id: bidProject.id },
-          update: { $set: projectWithNewBid },
-          upsert: true,
-        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
+        result = await projectsCollection.updateOne(
+          { _id: bidProject.id },
+          { $set: projectWithNewBid },
+          { upsert: true }
+        );
         console.log(`Synced project ${bidProject.id} with updated bids`);
         break;
 
@@ -246,6 +224,8 @@ serve(async (req) => {
         throw new Error(`Unknown action: ${action}`);
     }
 
+    // Close MongoDB connection
+    client.close();
     console.log('MongoDB sync completed successfully');
 
     return new Response(
