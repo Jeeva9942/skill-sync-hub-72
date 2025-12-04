@@ -1,26 +1,49 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
-import { MongoClient } from "https://deno.land/x/mongo@v0.32.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// MongoDB Atlas Data API helper using fetch
+async function mongoDBRequest(action: string, body: object, apiKey: string, dataApiUrl: string) {
+  const response = await fetch(`${dataApiUrl}/action/${action}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('MongoDB Data API error:', response.status, errorText);
+    throw new Error(`MongoDB Data API error: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}
+
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let mongoClient: MongoClient | null = null;
-
   try {
-    const MONGODB_URI = Deno.env.get('MONGODB_URI');
+    const MONGODB_DATA_API_KEY = Deno.env.get('MONGODB_DATA_API_KEY');
+    const MONGODB_DATA_API_URL = Deno.env.get('MONGODB_DATA_API_URL');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!MONGODB_URI) {
-      throw new Error('MongoDB URI not configured. Please set MONGODB_URI secret.');
+    if (!MONGODB_DATA_API_KEY || !MONGODB_DATA_API_URL) {
+      console.log('MongoDB Data API credentials not configured - sync disabled');
+      return new Response(
+        JSON.stringify({ success: true, message: 'MongoDB sync is disabled (credentials not configured)' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -32,46 +55,38 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Connect to MongoDB
-    mongoClient = new MongoClient();
-    await mongoClient.connect(MONGODB_URI);
-    console.log('Connected to MongoDB');
-
-    const db = mongoClient.database('skill_sync');
-    const collectionName = collection || 'projects';
-    const mongoCollection = db.collection(collectionName);
+    const baseBody = {
+      dataSource: 'Cluster0',
+      database: 'skill_sync',
+      collection: collection || 'projects',
+    };
 
     let result;
 
     switch (action) {
       case 'insertOne':
-        console.log(`Inserting document to MongoDB collection: ${collectionName}`, data);
-        const insertId = await mongoCollection.insertOne(data);
-        result = { insertedId: insertId };
+        console.log(`Inserting document to MongoDB collection: ${collection}`, data);
+        result = await mongoDBRequest('insertOne', { ...baseBody, document: data }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
         console.log('Insert result:', result);
         break;
 
       case 'updateOne':
-        console.log(`Updating document in MongoDB collection: ${collectionName}`);
-        const updateFilter = filter || { _id: data._id || data.id };
-        const updateResult = await mongoCollection.updateOne(
-          updateFilter,
-          { $set: data },
-          { upsert: true }
-        );
-        result = { 
-          matchedCount: updateResult.matchedCount, 
-          modifiedCount: updateResult.modifiedCount,
-          upsertedId: updateResult.upsertedId 
-        };
+        console.log(`Updating document in MongoDB collection: ${collection}`);
+        result = await mongoDBRequest('updateOne', {
+          ...baseBody,
+          filter: filter || { _id: data._id || data.id },
+          update: { $set: data },
+          upsert: true,
+        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
         console.log('Update result:', result);
         break;
 
       case 'deleteOne':
-        console.log(`Deleting document from MongoDB collection: ${collectionName}`);
-        const deleteFilter = filter || { _id: data._id || data.id };
-        const deleteCount = await mongoCollection.deleteOne(deleteFilter);
-        result = { deletedCount: deleteCount };
+        console.log(`Deleting document from MongoDB collection: ${collection}`);
+        result = await mongoDBRequest('deleteOne', {
+          ...baseBody,
+          filter: filter || { _id: data._id || data.id },
+        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
         console.log('Delete result:', result);
         break;
 
@@ -112,11 +127,12 @@ serve(async (req) => {
           };
 
           try {
-            const syncResult = await mongoCollection.updateOne(
-              { _id: project.id },
-              { $set: projectWithBids },
-              { upsert: true }
-            );
+            const syncResult = await mongoDBRequest('updateOne', {
+              ...baseBody,
+              filter: { _id: project.id },
+              update: { $set: projectWithBids },
+              upsert: true,
+            }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
             projectResults.push({ project_id: project.id, success: true, result: syncResult });
             console.log(`Synced project ${project.id}: ${project.title}`);
           } catch (err) {
@@ -170,16 +186,12 @@ serve(async (req) => {
           synced_at: new Date().toISOString(),
         };
 
-        const singleSyncResult = await mongoCollection.updateOne(
-          { _id: singleProject.id },
-          { $set: projectDoc },
-          { upsert: true }
-        );
-        result = { 
-          matchedCount: singleSyncResult.matchedCount, 
-          modifiedCount: singleSyncResult.modifiedCount,
-          upsertedId: singleSyncResult.upsertedId 
-        };
+        result = await mongoDBRequest('updateOne', {
+          ...baseBody,
+          filter: { _id: singleProject.id },
+          update: { $set: projectDoc },
+          upsert: true,
+        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
         console.log(`Synced project ${singleProject.id} with ${projectBids?.length || 0} bids`);
         break;
 
@@ -221,16 +233,12 @@ serve(async (req) => {
           synced_at: new Date().toISOString(),
         };
 
-        const bidSyncResult = await mongoCollection.updateOne(
-          { _id: bidProject.id },
-          { $set: projectWithNewBid },
-          { upsert: true }
-        );
-        result = { 
-          matchedCount: bidSyncResult.matchedCount, 
-          modifiedCount: bidSyncResult.modifiedCount,
-          upsertedId: bidSyncResult.upsertedId 
-        };
+        result = await mongoDBRequest('updateOne', {
+          ...baseBody,
+          filter: { _id: bidProject.id },
+          update: { $set: projectWithNewBid },
+          upsert: true,
+        }, MONGODB_DATA_API_KEY, MONGODB_DATA_API_URL);
         console.log(`Synced project ${bidProject.id} with updated bids`);
         break;
 
@@ -250,15 +258,5 @@ serve(async (req) => {
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } finally {
-    // Close MongoDB connection
-    if (mongoClient) {
-      try {
-        mongoClient.close();
-        console.log('MongoDB connection closed');
-      } catch (e) {
-        console.error('Error closing MongoDB connection:', e);
-      }
-    }
   }
 });
