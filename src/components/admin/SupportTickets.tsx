@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { notifyTicketResolved } from "@/hooks/useNotifications";
 import { Loader2, CheckCircle } from "lucide-react";
 import {
   Table,
@@ -80,12 +81,29 @@ export function SupportTickets() {
   const resolveTicket = async (ticketId: string) => {
     try {
       setActionLoading(ticketId);
+      
+      // Find the ticket to get user_id and subject
+      const ticket = tickets.find(t => t.id === ticketId);
+      
+      const { data: ticketData, error: fetchError } = await supabase
+        .from("support_tickets")
+        .select("user_id, subject")
+        .eq("id", ticketId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from("support_tickets")
         .update({ status: "resolved" })
         .eq("id", ticketId);
 
       if (error) throw error;
+
+      // Send notification to the user
+      if (ticketData?.user_id) {
+        await notifyTicketResolved(ticketData.user_id, ticketData.subject);
+      }
 
       toast({
         title: "Success",

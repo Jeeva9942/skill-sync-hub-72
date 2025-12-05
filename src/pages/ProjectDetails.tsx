@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { notifyNewBid, notifyProjectStatusChange, notifyMessageReceived } from "@/hooks/useNotifications";
 import { DollarSign, Calendar, User, Briefcase, MessageSquare, CheckCircle } from "lucide-react";
 
 const ProjectDetails = () => {
@@ -139,6 +140,17 @@ const ProjectDetails = () => {
       
       if (error) throw error;
       
+      // Send notification to project owner
+      if (project?.client_id && userProfile?.full_name) {
+        await notifyNewBid(
+          project.client_id,
+          userProfile.full_name,
+          project.title,
+          parseFloat(bidForm.amount),
+          id!
+        );
+      }
+      
       // Sync bid to MongoDB
       try {
         await supabase.functions.invoke('sync-mongodb', {
@@ -207,6 +219,15 @@ const ProjectDetails = () => {
         console.error('Error sending hire notification:', emailError);
       }
 
+      // Notify freelancer about project status change
+      if (bid.freelancer_id) {
+        await notifyProjectStatusChange(
+          bid.freelancer_id,
+          project.title,
+          "In Progress - You've been hired!"
+        );
+      }
+
       // Sync to MongoDB after bid accepted
       try {
         await supabase.functions.invoke('sync-mongodb', {
@@ -254,6 +275,15 @@ const ProjectDetails = () => {
         });
       
       if (error) throw error;
+      
+      // Notify the client about the message
+      if (userProfile?.full_name) {
+        await notifyMessageReceived(
+          project.client_id,
+          userProfile.full_name,
+          `Hi! I'm interested in your project: ${project.title}`
+        );
+      }
       
       toast({
         title: "Success",
