@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, LogOut, User, Menu, X } from "lucide-react";
+import { Briefcase, LogOut, User, Menu, Bell } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export const Navbar = () => {
   const [user, setUser] = useState<any>(null);
@@ -153,6 +154,10 @@ export const Navbar = () => {
         <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <>
+              {/* Notification Bell */}
+              <div className="hidden sm:block">
+                <NotificationBell userId={user.id} />
+              </div>
               {profile && (
                 <Link to="/my-profile" className="hidden sm:flex items-center gap-2 hover:opacity-80 transition-opacity">
                   <Avatar className="h-8 w-8 sm:h-9 sm:w-9 ring-2 ring-primary/20">
@@ -258,6 +263,16 @@ export const Navbar = () => {
                       >
                         <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all">
                           Dashboard
+                        </span>
+                      </Link>
+                      <Link 
+                        to="/notifications" 
+                        className="group px-5 py-4 text-base font-semibold hover:bg-gradient-card rounded-xl transition-all duration-300 border-2 border-transparent hover:border-primary/20 hover:shadow-soft"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text group-hover:text-transparent transition-all flex items-center gap-2">
+                          <Bell className="h-4 w-4" />
+                          Notifications
                         </span>
                       </Link>
                       {isAdmin && (
