@@ -182,7 +182,13 @@ const ProjectDetails = () => {
     }
   };
 
+  const [acceptingBid, setAcceptingBid] = useState<string | null>(null);
+
   const handleAcceptBid = async (bid: any) => {
+    // Prevent double-clicks and duplicate calls
+    if (acceptingBid === bid.id) return;
+    setAcceptingBid(bid.id);
+
     try {
       // Update bid status
       const { error: bidError } = await supabase
@@ -219,7 +225,7 @@ const ProjectDetails = () => {
         console.error('Error sending hire notification:', emailError);
       }
 
-      // Notify freelancer about project status change
+      // Notify freelancer about project status change (only once)
       if (bid.freelancer_id) {
         await notifyProjectStatusChange(
           bid.freelancer_id,
@@ -254,6 +260,8 @@ const ProjectDetails = () => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setAcceptingBid(null);
     }
   };
 
@@ -413,9 +421,10 @@ const ProjectDetails = () => {
                                   onClick={() => handleAcceptBid(bid)}
                                   className="w-full bg-gradient-hero"
                                   size="sm"
+                                  disabled={acceptingBid === bid.id}
                                 >
                                   <CheckCircle className="h-4 w-4 mr-2" />
-                                  Accept & Hire
+                                  {acceptingBid === bid.id ? "Processing..." : "Accept & Hire"}
                                 </Button>
                               )}
                             </CardContent>
