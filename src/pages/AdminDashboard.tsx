@@ -281,20 +281,25 @@ export default function AdminDashboard() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-hero text-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-1">Admin Dashboard</h1>
-              <p className="text-white/80">Skill Sync Platform Management</p>
+      <header className="bg-gradient-to-r from-primary via-primary/90 to-secondary text-white sticky top-0 z-50 shadow-lg">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
+                <Briefcase className="h-8 w-8" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+                <p className="text-white/70 text-sm">Skill Sync Platform Management</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
-                className="text-white hover:bg-white/20" 
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white" 
                 onClick={handleMongoSync}
                 disabled={syncing}
               >
@@ -303,24 +308,32 @@ export default function AdminDashboard() {
                 ) : (
                   <Database className="h-4 w-4 mr-2" />
                 )}
-                {syncing ? "Syncing..." : "Sync MongoDB"}
+                {syncing ? "Syncing..." : "Sync DB"}
               </Button>
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
-                className="text-white hover:bg-white/20" 
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white" 
                 onClick={() => fetchStats()}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
+                <RefreshCw className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate("/dashboard")}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white" 
+                onClick={() => navigate("/dashboard")}
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white" 
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
