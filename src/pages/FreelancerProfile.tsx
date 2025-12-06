@@ -186,10 +186,17 @@ const FreelancerProfile = () => {
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Avatar Section */}
                 <div className="flex flex-col items-center lg:items-start -mt-16 lg:-mt-12">
-                  <Avatar className="h-32 w-32 lg:h-40 lg:w-40 border-4 border-background shadow-xl">
-                    <AvatarImage src={profile.avatar_url} />
+                  <Avatar className="h-32 w-32 lg:h-40 lg:w-40 border-4 border-background shadow-xl bg-gradient-hero">
+                    <AvatarImage 
+                      src={profile.avatar_url} 
+                      alt={profile.full_name}
+                      onError={(e) => {
+                        // If avatar fails to load, hide the image element
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
                     <AvatarFallback className="text-4xl lg:text-5xl bg-gradient-hero text-white">
-                      {profile.full_name?.charAt(0)}
+                      {profile.full_name?.charAt(0)?.toUpperCase() || "?"}
                     </AvatarFallback>
                   </Avatar>
                   {profile.verification_status === "verified" && (
@@ -320,10 +327,16 @@ const FreelancerProfile = () => {
                       {reviews.map((review) => (
                         <div key={review.id} className="p-4 rounded-lg bg-muted/30 border">
                           <div className="flex items-start gap-4">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={review.reviewer?.avatar_url} />
-                              <AvatarFallback>
-                                {review.reviewer?.full_name?.charAt(0) || "?"}
+                            <Avatar className="h-10 w-10 bg-primary/10">
+                              <AvatarImage 
+                                src={review.reviewer?.avatar_url} 
+                                alt={review.reviewer?.full_name}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {review.reviewer?.full_name?.charAt(0)?.toUpperCase() || "?"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
