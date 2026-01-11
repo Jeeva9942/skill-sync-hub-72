@@ -62,6 +62,73 @@ export type Database = {
           },
         ]
       }
+      interviews: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          duration_minutes: number | null
+          freelancer_id: string
+          id: string
+          meeting_link: string | null
+          notes: string | null
+          project_id: string | null
+          scheduled_at: string
+          shortlist_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          freelancer_id: string
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          project_id?: string | null
+          scheduled_at: string
+          shortlist_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          freelancer_id?: string
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          project_id?: string | null
+          scheduled_at?: string
+          shortlist_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "shortlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -138,6 +205,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability_status: string | null
           avatar_url: string | null
           bio: string | null
           certifications: string[] | null
@@ -148,6 +216,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           languages: string[] | null
+          last_active_at: string | null
           location: string | null
           portfolio_url: string | null
           skills: string[] | null
@@ -158,6 +227,7 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          availability_status?: string | null
           avatar_url?: string | null
           bio?: string | null
           certifications?: string[] | null
@@ -168,6 +238,7 @@ export type Database = {
           hourly_rate?: number | null
           id: string
           languages?: string[] | null
+          last_active_at?: string | null
           location?: string | null
           portfolio_url?: string | null
           skills?: string[] | null
@@ -178,6 +249,7 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          availability_status?: string | null
           avatar_url?: string | null
           bio?: string | null
           certifications?: string[] | null
@@ -188,6 +260,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           languages?: string[] | null
+          last_active_at?: string | null
           location?: string | null
           portfolio_url?: string | null
           skills?: string[] | null
@@ -208,8 +281,10 @@ export type Database = {
           created_at: string | null
           deadline: string | null
           description: string
+          duration: string | null
           freelancer_id: string | null
           id: string
+          required_skills: string[] | null
           status: Database["public"]["Enums"]["project_status"] | null
           title: string
           updated_at: string | null
@@ -222,8 +297,10 @@ export type Database = {
           created_at?: string | null
           deadline?: string | null
           description: string
+          duration?: string | null
           freelancer_id?: string | null
           id?: string
+          required_skills?: string[] | null
           status?: Database["public"]["Enums"]["project_status"] | null
           title: string
           updated_at?: string | null
@@ -236,8 +313,10 @@ export type Database = {
           created_at?: string | null
           deadline?: string | null
           description?: string
+          duration?: string | null
           freelancer_id?: string | null
           id?: string
+          required_skills?: string[] | null
           status?: Database["public"]["Enums"]["project_status"] | null
           title?: string
           updated_at?: string | null
@@ -307,6 +386,54 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlists: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          freelancer_id: string
+          id: string
+          notes: string | null
+          project_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          freelancer_id: string
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          freelancer_id?: string
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlists_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlists_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
