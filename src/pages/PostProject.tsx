@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Clock } from "lucide-react";
+import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 
 const PostProject = () => {
   const [user, setUser] = useState<any>(null);
@@ -22,7 +23,9 @@ const PostProject = () => {
     category: "",
     budget_min: "",
     budget_max: "",
-    deadline: ""
+    deadline: "",
+    duration: "",
+    required_skills: [] as string[],
   });
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -71,6 +74,8 @@ const PostProject = () => {
         budget_min: project.budget_min ? parseFloat(project.budget_min) : null,
         budget_max: project.budget_max ? parseFloat(project.budget_max) : null,
         deadline: project.deadline || null,
+        duration: project.duration || null,
+        required_skills: project.required_skills,
         status: "open"
       };
 
@@ -134,7 +139,7 @@ const PostProject = () => {
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
               {userProfile?.user_role === "freelancer" ? "Propose Your " : "Post a "}
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {userProfile?.user_role === "freelancer" ? "Services" : "Project"}
+                {userProfile?.user_role === "freelancer" ? "Services" : "Job"}
               </span>
             </h1>
             <p className="text-xl text-muted-foreground">
@@ -150,7 +155,7 @@ const PostProject = () => {
                 <Briefcase className="h-6 w-6 text-primary" />
                 <div>
                   <CardTitle>
-                    {userProfile?.user_role === "freelancer" ? "Service Details" : "Project Details"}
+                    {userProfile?.user_role === "freelancer" ? "Service Details" : "Job Details"}
                   </CardTitle>
                   <CardDescription>
                     {userProfile?.user_role === "freelancer"
@@ -164,7 +169,7 @@ const PostProject = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">
-                    {userProfile?.user_role === "freelancer" ? "Service Title" : "Project Title"} *
+                    {userProfile?.user_role === "freelancer" ? "Service Title" : "Job Title"} *
                   </Label>
                   <Input
                     id="title"
@@ -181,7 +186,7 @@ const PostProject = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="description">
-                    {userProfile?.user_role === "freelancer" ? "Service Description" : "Project Description"} *
+                    {userProfile?.user_role === "freelancer" ? "Service Description" : "Job Description"} *
                   </Label>
                   <Textarea
                     id="description"
@@ -198,25 +203,56 @@ const PostProject = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Select
-                    value={project.category}
-                    onValueChange={(value) => setProject({ ...project, category: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="web_development">Web Development</SelectItem>
-                      <SelectItem value="mobile_development">Mobile Development</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="writing">Writing</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="data_science">Data Science</SelectItem>
-                      <SelectItem value="video_editing">Video Editing</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Required Skills *</Label>
+                  <SkillsMultiSelect
+                    value={project.required_skills}
+                    onChange={(skills) => setProject({ ...project, required_skills: skills })}
+                    placeholder="Add required skills..."
+                    maxSkills={8}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category *</Label>
+                    <Select
+                      value={project.category}
+                      onValueChange={(value) => setProject({ ...project, category: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="web_development">Web Development</SelectItem>
+                        <SelectItem value="mobile_development">Mobile Development</SelectItem>
+                        <SelectItem value="design">Design</SelectItem>
+                        <SelectItem value="writing">Writing</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="data_science">Data Science</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="duration">Project Duration</Label>
+                    <Select
+                      value={project.duration}
+                      onValueChange={(value) => setProject({ ...project, duration: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="less_than_week">Less than a week</SelectItem>
+                        <SelectItem value="1_2_weeks">1-2 weeks</SelectItem>
+                        <SelectItem value="2_4_weeks">2-4 weeks</SelectItem>
+                        <SelectItem value="1_3_months">1-3 months</SelectItem>
+                        <SelectItem value="3_6_months">3-6 months</SelectItem>
+                        <SelectItem value="more_than_6_months">More than 6 months</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -260,12 +296,12 @@ const PostProject = () => {
                 </div>
 
                 <div className="flex gap-4">
-                  <Button type="submit" disabled={loading} className="flex-1">
+                  <Button type="submit" disabled={loading} className="flex-1 bg-gradient-hero">
                     {loading 
                       ? "Posting..." 
                       : userProfile?.user_role === "freelancer" 
                         ? "Post Service" 
-                        : "Post Project"}
+                        : "Post Job"}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => navigate("/dashboard")}>
                     Cancel

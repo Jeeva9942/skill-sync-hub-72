@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { User, MapPin, Briefcase, DollarSign, Award, Plus, X } from "lucide-react";
+import { User, MapPin, Briefcase, DollarSign, Award, Plus, X, Circle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const MyProfile = () => {
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,8 @@ const MyProfile = () => {
     portfolio_url: "",
     skills: [],
     languages: [],
-    certifications: []
+    certifications: [],
+    availability_status: "available"
   });
   const [newSkill, setNewSkill] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
@@ -84,7 +86,9 @@ const MyProfile = () => {
           avatar_url: profile.avatar_url,
           skills: profile.skills,
           languages: profile.languages,
-          certifications: profile.certifications
+          certifications: profile.certifications,
+          availability_status: profile.availability_status,
+          last_active_at: new Date().toISOString()
         })
         .eq("id", user.id);
       
@@ -210,6 +214,40 @@ const MyProfile = () => {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Availability Status */}
+              <div className="space-y-2">
+                <Label>Availability Status</Label>
+                <Select
+                  value={profile.availability_status || "available"}
+                  onValueChange={(value) => setProfile({ ...profile, availability_status: value })}
+                >
+                  <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">
+                      <span className="flex items-center gap-2">
+                        <Circle className="h-3 w-3 fill-green-500 text-green-500" />
+                        Available
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="busy">
+                      <span className="flex items-center gap-2">
+                        <Circle className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                        Busy
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="offline">
+                      <span className="flex items-center gap-2">
+                        <Circle className="h-3 w-3 fill-gray-400 text-gray-400" />
+                        Offline
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Let clients know if you're available for new projects</p>
               </div>
 
               <div className="space-y-2">
